@@ -43,7 +43,7 @@ my_spawn({SlaveNode, L}, Func) ->
                                                                                    
 my_split([], _, _, L) ->                                                           
     L;                                         
-    my_split(List, Len, NodeCnt, L) when length(List) >= Len ->                        
+my_split(List, Len, NodeCnt, L) when length(List) >= Len ->                        
     case length(L) of                                                              
         NodeCnt  ->                                                                
             [List | L];                                                            
