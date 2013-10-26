@@ -1,18 +1,21 @@
 -module(mprd_master).                                                           
 -compile(export_all).                                                           
                                                                                 
-map(Func, UserReduce, List, SlaveNum) ->                                        
-    Pid = self(),                                                               
+map(Func, UserReduce, List, SlaveNum) ->                                           
+    Pid = self(),                                                                  
     Pids = lists:map(fun(I) -> spawn(fun() -> do_work(Pid, Func, I) end) end, List),
-    case SlaveNum > 0 of                                                        
-        true -> Res = gather(Pids, SlaveNum);                                   
-        _ -> Res = Pids                                                         
-    end,                                                                        
-    R = reduce(Res),                                                            
-    UserReduce(R),                                                              
-    unregister(master).                                                            
-    %io:format("~w~n", [R]).                                                    
-    %lists:foreach(fun(X) -> print(X) end, R).                                  
+    case SlaveNum > 0 of                                                           
+        true -> Res = gather(Pids, SlaveNum);                                      
+        _ -> Res = Pids                                                            
+    end,                                                                           
+    R = reduce(Res),                                                               
+    case whereis(master) of                                                        
+        undefined ->                                                               
+            ok;                                                                    
+        _ ->                                                                       
+            unregister(master)                                                     
+    end,                                                                           
+    UserReduce(R).                                  
                                                                                 
 reduce([]) ->                                                                   
     [];                                                                         
@@ -56,8 +59,9 @@ my_split(List, Len, NodeCnt, L) when length(List) >= Len ->
 my_split(List, Len, _, L) ->                                                    
     L.                                                                          
                                                                                 
-start(Func,UserReduce, L) ->                                                    
-    register(master, spawn(mprd_master, map, [Func, L, 0])).                    
+start(Func, UserReduce, L) ->                                                   
+    %spawn(mprd_master, map, [Func, UserReduce, L, 0]).                         
+    map(Func, UserReduce, L, 0).                    
                                                                                 
 start(SlaveNodes, Func, UserReduce, L) when length(SlaveNodes) > length(L) -1 ->
     io:format("Make sure the number of slave node is less than the length of List please!\n");
