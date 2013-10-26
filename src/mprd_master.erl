@@ -9,7 +9,8 @@ map(Func, UserReduce, List, SlaveNum) ->
         _ -> Res = Pids                                                         
     end,                                                                        
     R = reduce(Res),                                                            
-    UserReduce(R).                                                              
+    UserReduce(R),                                                              
+    unregister(master).                                                            
     %io:format("~w~n", [R]).                                                    
     %lists:foreach(fun(X) -> print(X) end, R).                                  
                                                                                 
